@@ -1,9 +1,15 @@
-require("dotenv").config();const express = require("express");
+require("dotenv").config();
+const express = require("express");
 const app = express();
 
 const mongoose = require("mongoose");
 
+//**express middlewares */
 app.use(express.json());
+
+//**third-party middlewares */
+const logger = require("morgan");
+app.use(logger("dev"));
 
 //**routes */
 app.post("/", (req, res) => {
