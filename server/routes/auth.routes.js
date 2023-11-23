@@ -1,5 +1,4 @@
-const express = require("express");
-const router = express.Router();
+const express = require("express");const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -41,7 +40,8 @@ router.post("/login", async (req, res) => {
   }
 
   /**sign token */
-  const { _id, roles } = user;
+  const { _id, roles } = user[0];
+
   const refreshToken = await jwt.sign({ _id }, "secretKey");
   const accessToken = await jwt.sign({ _id, roles }, "secretKey");
 
@@ -51,5 +51,20 @@ router.post("/login", async (req, res) => {
 });
 
 //**refresh */
+router.post("/refresh", async (req, res) => {
+  const { token } = req.cookies;
+  /**decode token */
+  const decoded = await jwt.verify(token, "secretKey");
+  const { _id } = decoded;
+  /**find user by id contain in token */
+  const user = await User.find({ _id });
+  /**sign token */
+  const { roles } = user[0];
+  const refreshToken = jwt.sign({ _id }, "secretKey");
+  const accessToken = jwt.sign({ _id, roles }, "secretKey");
+  /**send cookie */
+  res.cookie("token", refreshToken);
+  return res.status(200).send({ accessToken });
+});
 
 module.exports = router;

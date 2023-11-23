@@ -1,5 +1,4 @@
-require("dotenv").config();
-const express = require("express");
+require("dotenv").config();const express = require("express");
 const app = express();
 
 const mongoose = require("mongoose");
@@ -8,7 +7,10 @@ const mongoose = require("mongoose");
 app.use(express.json());
 
 //**third-party middlewares */
+const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+
+app.use(cookieParser());
 app.use(logger("dev"));
 
 //**routes */
