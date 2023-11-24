@@ -43,25 +43,25 @@ router.post("/login", async (req, res) => {
 
   /**detect concurrent use */
   if (user[0].refreshToken !== null) {
-    user[0].updateOne({ refreshToken: null });
-    return res.status(400).send({ message: "Your account is on use" });
+    await user[0].updateOne({ refreshToken: null });
+    return res
+      .status(400)
+      .send({ message: "Your account is on use, we log out" });
   }
 
   /**sign token */
   const { _id, roles } = user[0];
   const genRandom = await crypto.randomBytes(20).toString("hex");
 
-  console.log("🚀 -> file: auth.routes.js:49 -> genRandom:", genRandom);
-
   const refreshToken = await jwt.sign({ _id, genRandom }, "secretKey");
   const accessToken = await jwt.sign({ _id, roles }, "secretKey");
 
   /**update refresh token in db*/
-  user[0].updateOne({ refreshToken });
+  await user[0].updateOne({ refreshToken });
   /**send cookie */
   res.cookie("token", refreshToken);
 
-  return res.send({ user, accessToken });
+  return res.send({ accessToken });
 });
 
 //**refresh */
@@ -78,7 +78,7 @@ router.post("/refresh", async (req, res) => {
   /**detect re-used token */
   if (user[0].refreshToken !== token) {
     user.updateOne({ refreshToken: null });
-    return res.status(400).send({ message: "Re-used detected!" });
+    return res.status(400).send({ message: "Re-used detected!, log out" });
   }
 
   /**sign token */

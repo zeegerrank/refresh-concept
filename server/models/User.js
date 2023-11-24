@@ -1,8 +1,7 @@
-const mongoose = require("mongoose");
-const UserSchema = new mongoose.Schema({
+const mongoose = require("mongoose");const UserSchema = new mongoose.Schema({
   username: String,
   password: String,
-  refreshToken: String,
+  refreshToken: { type: String, default: null },
   roles: [{ type: String }],
 });
 

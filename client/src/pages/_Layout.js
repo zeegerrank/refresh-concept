@@ -1,4 +1,5 @@
-import { Outlet } from "react-router-dom";import { Container, Nav, Navbar } from "react-bootstrap";
+import { Outlet } from "react-router-dom";
+import { Container, Nav, Navbar } from "react-bootstrap";
 const Layout = () => {
   let content;
   content = (
@@ -9,6 +10,7 @@ const Layout = () => {
           <Nav className="me-auto">
             <Nav.Link href="/">Home</Nav.Link>
             <Nav.Link href="/profile">Profile</Nav.Link>
+            <Nav.Link href="/login">Login</Nav.Link>
           </Nav>
         </Container>
       </Navbar>
