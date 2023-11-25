@@ -1,6 +1,6 @@
-import { useState } from "react";import axios from "axios";
-import axiosError from "../handler/axiosError.handler";
+import { useState } from "react";import axiosError from "../handlers/axiosError.handler";
 import { Form, Button, Card } from "react-bootstrap";
+import api from "../app/api";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -10,11 +10,9 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await axios
-      .post("/auth/login", { username, password })
-      .catch(axiosError);
+    const result = await api.post("/auth/login", { username, password });
 
-    console.log("🚀 -> file: Login.js:33 -> result.data:", result?.data);
+    console.log("🚀 -> file: Login.js:15 -> result.data:", result?.data);
   };
   let content;
   content = (

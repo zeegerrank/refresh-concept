@@ -3,9 +3,26 @@ import Welcome from "./pages/Welcome";
 import Profile from "./pages/Profile";
 import Layout from "./pages/_Layout";
 import Login from "./pages/Login";
-import axios from "axios";
+import { useEffect } from "react";
+import api from "./app/api";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "./features/authSlice";
 function App() {
-  axios.defaults.baseURL = "http://localhost:3500/api";
+  const dispatch = useDispatch();
+  useEffect((next) => {
+    let isMount = true;
+    if (isMount) {
+      const fetchData = async () => {
+        const result = await api.post("/auth/refresh");
+
+        console.log("🚀 -> file: App.js:15 -> result?.data:", result?.data);
+        dispatch(setCredentials({}));
+      };
+      fetchData();
+      return next;
+    }
+    return (isMount = false);
+  }, []);
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

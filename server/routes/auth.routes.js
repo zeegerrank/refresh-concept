@@ -1,5 +1,4 @@
-const express = require("express");
-const router = express.Router();
+const express = require("express");const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -27,7 +26,8 @@ router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   /**find user */
-  const user = await User.find({ username });
+  let user = await User.find({ username });
+  console.log("🚀 -> file: auth.routes.js:31 -> user:", user);
 
   if (!user || user.length === 0) {
     return res.status(404).send({ message: "User not found" });
@@ -44,6 +44,7 @@ router.post("/login", async (req, res) => {
   /**detect concurrent use */
   if (user[0].refreshToken !== null) {
     await user[0].updateOne({ refreshToken: null });
+    res.cookie("token", null);
     return res
       .status(400)
       .send({ message: "Your account is on use, we log out" });
@@ -60,38 +61,53 @@ router.post("/login", async (req, res) => {
   await user[0].updateOne({ refreshToken });
   /**send cookie */
   res.cookie("token", refreshToken);
-
-  return res.send({ accessToken });
+  user[0].password = null;
+  user[0].refreshToken = null;
+  return res.send({ user, accessToken });
 });
 
 //**refresh */
 router.post("/refresh", async (req, res) => {
-  const { token } = req.cookies;
+  const token = req.headers.authorization.split(" ", 2)[1];
 
-  /**decode token */
-  const decoded = await jwt.verify(token, "secretKey");
-  const { _id } = decoded;
+  console.log("🚀 -> file: auth.routes.js:74 -> token:", token);
 
-  /**find user by id contain in token */
-  const user = await User.find({ _id });
-
-  /**detect re-used token */
-  if (user[0].refreshToken !== token) {
-    user.updateOne({ refreshToken: null });
-    return res.status(400).send({ message: "Re-used detected!, log out" });
+  /**check if there's token */
+  if (!token || token === "j:null" || token === null) {
+    return res.status(400).send({ message: "Please log in again" });
   }
+  try {
+    /**decode token */
+    const decoded = jwt.verify(token, "secretKey");
 
-  /**sign token */
-  const { roles } = user[0];
-  const genRandom = bcrypt.randomBytes(20).toString("hex");
-  const refreshToken = jwt.sign({ _id, genRandom }, "secretKey");
-  const accessToken = jwt.sign({ _id, roles }, "secretKey");
+    /**find user by id contain in token */
 
-  /**send cookie */
-  res.cookie("token", refreshToken);
-  return res
-    .status(200)
-    .send({ accessToken, message: "refresh token update and sent" });
+    const { _id } = decoded;
+    const user = await User.find({ _id }).select("-password");
+
+    /**detect re-used token */
+    if (user[0].refreshToken !== token) {
+      res.cookie("token", null);
+      await user[0].updateOne({ refreshToken: null });
+      return res.status(400).send({ message: "Please log in again" });
+    }
+
+    /**sign token */
+    const { roles } = user[0];
+    const genRandom = await crypto.randomBytes(20).toString("hex");
+
+    const refreshToken = jwt.sign({ _id, genRandom }, "secretKey");
+    const accessToken = jwt.sign({ _id, roles }, "secretKey");
+
+    /**send cookie */
+    res.cookie("token", refreshToken);
+    await user[0].updateOne({ refreshToken });
+    return res
+      .status(200)
+      .send({ user, accessToken, message: "refresh token update and sent" });
+  } catch (err) {
+    return res.status(400).send(err);
+  }
 });
 
 module.exports = router;

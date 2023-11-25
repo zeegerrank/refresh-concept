@@ -1,4 +1,5 @@
-require("dotenv").config();const express = require("express");
+require("dotenv").config();
+const express = require("express");
 const app = express();
 
 const mongoose = require("mongoose");
@@ -14,7 +15,7 @@ const cors = require("cors");
 app.use(cookieParser());
 app.use(logger("dev"));
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 //**routes */
 app.post("/", (req, res) => {
